@@ -92,6 +92,16 @@ Expected response:
 }
 ```
 
+### Step 3: Run the Automated API Flow
+
+From the `backend` directory, run:
+
+```bash
+py -3 tests/run_api_flow.py
+```
+
+The runner prints each API request and its result in the terminal. It uses a temporary in-memory database and mocks AI-provider requests, so it does not change local library data or consume AI quota.
+
 
 
 ### API Endpoints Reference

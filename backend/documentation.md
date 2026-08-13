@@ -90,7 +90,25 @@ pip install flask flask-sqlalchemy pyjwt passlib requests python-dotenv
 
 ---
 
-# E. Run the Application
+# E. Automated API Flow Test
+
+From the `backend` directory, run:
+
+```bash
+py -3 tests/run_api_flow.py
+```
+
+This executes the API flow one route at a time and prints `RUN` and `PASS` logs in the terminal. It uses a temporary in-memory SQLite database. AI usage and summary calls are mocked, so the test does not use the configured AI token or quota.
+
+For the pytest suite, run:
+
+```bash
+py -3 -m pytest tests -q
+```
+
+---
+
+# F. Run the Application
 
 ```bash
 python run.py
@@ -104,7 +122,7 @@ http://127.0.0.1:5000
 
 ---
 
-# F. API Base URL
+# G. API Base URL
 
 ```text
 http://127.0.0.1:5000
@@ -112,7 +130,7 @@ http://127.0.0.1:5000
 
 ---
 
-# G. Authentication
+# H. Authentication
 
 The application uses JWT Bearer authentication.
 
@@ -130,7 +148,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ---
 
-# H. API Endpoint Reference
+# I. API Endpoint Reference
 
 ## Health Check
 
@@ -1256,7 +1274,7 @@ Expected Status
 
 -->
 
-# TEST 27 â€” Update a Book
+# TEST 27 - Update a Book
 
 Only a librarian or admin can update a book. Send only the fields that need to change.
 
@@ -1286,7 +1304,7 @@ Expected response:
 
 ---
 
-# TEST 28 â€” Delete a Book
+# TEST 28 - Delete a Book
 
 Only a librarian or admin can delete a book. Deletion is allowed only when the book has no borrowing or reservation records.
 
@@ -1306,7 +1324,7 @@ Expected response:
 
 ---
 
-# TEST 29 â€” View Reviews
+# TEST 29 - View Reviews
 
 ```http
 GET /api/v1/books/1/reviews
@@ -1330,7 +1348,7 @@ Expected response structure:
 
 ---
 
-# TEST 30 â€” View and Cancel Reservations
+# TEST 30 - View and Cancel Reservations
 
 ```http
 GET /api/v1/borrow/reservations
@@ -1346,7 +1364,7 @@ Authorization: Bearer ALICE_JWT_TOKEN
 
 ---
 
-# TEST 31 â€” View Loans
+# TEST 31 - View Loans
 
 The authenticated user can view their own loan history:
 
