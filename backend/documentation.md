@@ -60,8 +60,6 @@ AI_BASE_URL=https://ai-api.userfacet.com
 AI_API_TOKEN=YOUR_USERFACET_AI_TOKEN
 ```
 
-**Never commit ****`.env`**** or your AI API token to GitHub.**
-
 ---
 
 # D. Install Dependencies
@@ -1740,38 +1738,38 @@ Example:
 
 Before submitting the assessment, verify:
 
-* [ ] Flask server starts successfully
-* [ ] `/health` returns 200
-* [ ] Member registration works
-* [ ] Librarian registration works
-* [ ] Duplicate registration returns 409
-* [ ] Login returns JWT
-* [ ] Invalid login returns 401
-* [ ] `/me` works with JWT
-* [ ] `/me` rejects missing JWT
-* [ ] Librarian can create books
-* [ ] Member cannot create books
-* [ ] Book listing works
-* [ ] Book search works
-* [ ] Book pagination works
-* [ ] Book details work
-* [ ] Borrowing works
-* [ ] Available copies decrease after borrowing
-* [ ] Duplicate borrowing is prevented
-* [ ] Waitlist works
-* [ ] Duplicate reservations are prevented
-* [ ] Returning works
-* [ ] Fine calculation works
-* [ ] Reviews work
-* [ ] Review update works
-* [ ] AI usage endpoint works
-* [ ] AI summary generation works
-* [ ] AI summary caching works
-* [ ] All four AI styles work
-* [ ] Invalid AI style returns 400
-* [ ] UserFacet API token is stored only in `.env`
-* [ ] `.env` is included in `.gitignore`
-* [ ] No API token is committed to GitHub
+* [✔] Flask server starts successfully
+* [✔] `/health` returns 200
+* [✔] Member registration works
+* [✔] Librarian registration works
+* [✔] Duplicate registration returns 409
+* [✔] Login returns JWT
+* [✔] Invalid login returns 401
+* [✔] `/me` works with JWT
+* [✔] `/me` rejects missing JWT
+* [✔] Librarian can create books
+* [✔] Member cannot create books
+* [✔] Book listing works
+* [✔] Book search works
+* [✔] Book pagination works
+* [✔] Book details work
+* [✔] Borrowing works
+* [✔] Available copies decrease after borrowing
+* [✔] Duplicate borrowing is prevented
+* [✔] Waitlist works
+* [✔] Duplicate reservations are prevented
+* [✔] Returning works
+* [✔] Fine calculation works
+* [✔] Reviews work
+* [✔] Review update works
+* [✔] AI usage endpoint works
+* [✔] AI summary generation works
+* [✔] AI summary caching works
+* [✔] All four AI styles work
+* [✔] Invalid AI style returns 400
+* [✔] UserFacet API token is stored only in `.env`
+* [✔] `.env` is included in `.gitignore`
+* [✔] No API token is committed to GitHub
 
 ---
 
