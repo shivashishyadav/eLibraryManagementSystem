@@ -18,16 +18,14 @@ def register():
     if User.query.filter((User.email == data['email']) | (User.username == data['username'])).first():
         return jsonify({'error': {'message': 'User with this email or username already exists'}}), 409
 
-    role = data.get('role', 'member')
-
-    if role not in ['member', 'librarian']:
+    if data.get('role', 'member') != 'member':
         return jsonify({
             'error': {
-                'message': 'Invalid role. Registration is only allowed for member or librarian'
+                'message': 'Public registration only creates member accounts'
             }
-        }), 400
+        }), 403
 
-    user = User(username=data['username'], email=data['email'], role=role)
+    user = User(username=data['username'], email=data['email'], role='member')
     user.set_password(data['password'])
     db.session.add(user)
     db.session.commit()

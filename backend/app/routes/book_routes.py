@@ -2,10 +2,21 @@
 
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import Book, Review
+from app.models import Book, Review, BorrowRecord, Reservation, BookSummaryCache
 from app.utils import token_required, roles_required
 
 book_bp = Blueprint('books', __name__, url_prefix='/api/v1/books')
+
+
+def _parse_total_copies(value):
+    if isinstance(value, bool) or (isinstance(value, float) and not value.is_integer()):
+        return None
+    try:
+        total_copies = int(value)
+    except (TypeError, ValueError):
+        return None
+    return total_copies if total_copies >= 1 else None
+
 
 @book_bp.route('', methods=['GET'])
 def list_books():
@@ -70,6 +81,8 @@ def get_book(book_id):
 @roles_required('librarian', 'admin')
 def create_book(current_user):
     data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     required = ['title', 'author', 'isbn', 'category']
     if not all(k in data for k in required):
         return jsonify({'error': {'message': f'Missing required fields: {required}'}}), 400
@@ -77,7 +90,10 @@ def create_book(current_user):
     if Book.query.filter_by(isbn=data['isbn']).first():
         return jsonify({'error': {'message': 'Book with this ISBN already exists'}}), 409
 
-    total = data.get('total_copies', 1)
+    total = _parse_total_copies(data.get('total_copies', 1))
+    if total is None:
+        return jsonify({'error': {'message': 'total_copies must be a positive integer'}}), 400
+
     book = Book(
         title=data['title'],
         author=data['author'],
@@ -91,6 +107,92 @@ def create_book(current_user):
     db.session.add(book)
     db.session.commit()
     return jsonify({'message': 'Book added successfully', 'book_id': book.id}), 201
+
+
+@book_bp.route('/<int:book_id>', methods=['PUT'])
+@token_required
+@roles_required('librarian', 'admin')
+def update_book(current_user, book_id):
+    book = Book.query.get_or_404(book_id)
+    data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
+    allowed_fields = ['title', 'author', 'isbn', 'category', 'description', 'content_excerpt', 'total_copies']
+
+    if not any(field in data for field in allowed_fields):
+        return jsonify({'error': {'message': f'Provide at least one field to update: {allowed_fields}'}}), 400
+
+    for field in ['title', 'author', 'isbn', 'category']:
+        if field in data and (not isinstance(data[field], str) or not data[field].strip()):
+            return jsonify({'error': {'message': f'{field} must be a non-empty string'}}), 400
+
+    for field in ['description', 'content_excerpt']:
+        if field in data and data[field] is not None and not isinstance(data[field], str):
+            return jsonify({'error': {'message': f'{field} must be a string or null'}}), 400
+
+    if 'isbn' in data and data['isbn'] != book.isbn:
+        if Book.query.filter_by(isbn=data['isbn']).first():
+            return jsonify({'error': {'message': 'Book with this ISBN already exists'}}), 409
+
+    if 'total_copies' in data:
+        total_copies = _parse_total_copies(data['total_copies'])
+        if total_copies is None:
+            return jsonify({'error': {'message': 'total_copies must be a positive integer'}}), 400
+
+        borrowed_copies = book.total_copies - book.available_copies
+        if total_copies < borrowed_copies:
+            return jsonify({
+                'error': {
+                    'message': f'total_copies cannot be lower than the {borrowed_copies} currently borrowed copy/copies'
+                }
+            }), 400
+        book.total_copies = total_copies
+        book.available_copies = total_copies - borrowed_copies
+
+    for field in ['title', 'author', 'isbn', 'category', 'description', 'content_excerpt']:
+        if field in data:
+            setattr(book, field, data[field])
+
+    # Book details may affect generated summaries, so stale cache entries are removed.
+    if any(field in data for field in ['title', 'author', 'category', 'description', 'content_excerpt']):
+        BookSummaryCache.query.filter_by(book_id=book.id).delete(synchronize_session=False)
+
+    db.session.commit()
+    return jsonify({'message': 'Book updated successfully', 'book_id': book.id}), 200
+
+
+@book_bp.route('/<int:book_id>', methods=['DELETE'])
+@token_required
+@roles_required('librarian', 'admin')
+def delete_book(current_user, book_id):
+    book = Book.query.get_or_404(book_id)
+
+    if BorrowRecord.query.filter_by(book_id=book.id).first() or Reservation.query.filter_by(book_id=book.id).first():
+        return jsonify({
+            'error': {
+                'message': 'Book cannot be deleted because it has borrowing or reservation records'
+            }
+        }), 409
+
+    db.session.delete(book)
+    db.session.commit()
+    return jsonify({'message': 'Book deleted successfully', 'book_id': book_id}), 200
+
+
+@book_bp.route('/<int:book_id>/reviews', methods=['GET'])
+def list_reviews(book_id):
+    Book.query.get_or_404(book_id)
+    reviews = Review.query.filter_by(book_id=book_id).order_by(Review.created_at.desc()).all()
+
+    return jsonify({
+        'reviews': [{
+            'id': review.id,
+            'rating': review.rating,
+            'comment': review.comment,
+            'created_at': review.created_at.isoformat()
+        } for review in reviews],
+        'total': len(reviews)
+    }), 200
 
 
 @book_bp.route('/<int:book_id>/reviews', methods=['POST'])

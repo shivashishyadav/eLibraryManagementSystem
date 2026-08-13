@@ -8,6 +8,51 @@ from app.utils import token_required, roles_required
 
 borrow_bp = Blueprint('borrow', __name__, url_prefix='/api/v1/borrow')
 
+
+def _loan_response(record):
+    is_overdue = record.status == 'active' and record.due_date < datetime.utcnow()
+    return {
+        'id': record.id,
+        'user_id': record.user_id,
+        'book_id': record.book_id,
+        'title': record.book.title,
+        'borrow_date': record.borrow_date.isoformat(),
+        'due_date': record.due_date.isoformat(),
+        'return_date': record.return_date.isoformat() if record.return_date else None,
+        'status': 'overdue' if is_overdue else record.status,
+        'fine_amount': record.fine_amount
+    }
+
+
+@borrow_bp.route('/my-borrows', methods=['GET'])
+@token_required
+def my_borrows(current_user):
+    records = BorrowRecord.query.filter_by(user_id=current_user.id)\
+                                .order_by(BorrowRecord.borrow_date.desc()).all()
+    return jsonify({'borrows': [_loan_response(record) for record in records]}), 200
+
+
+@borrow_bp.route('/loans', methods=['GET'])
+@token_required
+@roles_required('librarian', 'admin')
+def list_loans(current_user):
+    status = request.args.get('status', 'active').lower()
+    if status not in ['active', 'overdue', 'returned', 'all']:
+        return jsonify({'error': {'message': 'Invalid status. Pick: active, overdue, returned, all'}}), 400
+
+    query = BorrowRecord.query
+    now = datetime.utcnow()
+    if status == 'overdue':
+        query = query.filter(BorrowRecord.status == 'active', BorrowRecord.due_date < now)
+    elif status == 'active':
+        query = query.filter(BorrowRecord.status == 'active', BorrowRecord.due_date >= now)
+    elif status == 'returned':
+        query = query.filter(BorrowRecord.status == 'returned')
+
+    records = query.order_by(BorrowRecord.due_date.asc()).all()
+    return jsonify({'loans': [_loan_response(record) for record in records], 'total': len(records)}), 200
+
+
 @borrow_bp.route('/issue', methods=['POST'])
 @token_required
 def borrow_book(current_user):
@@ -120,3 +165,33 @@ def reserve_book(current_user):
 
     queue_pos = Reservation.query.filter_by(book_id=book_id, status='waiting').count()
     return jsonify({'message': 'Added to waitlist', 'queue_position': queue_pos}), 201
+
+
+@borrow_bp.route('/reservations', methods=['GET'])
+@token_required
+def list_reservations(current_user):
+    reservations = Reservation.query.filter_by(user_id=current_user.id)\
+                                      .order_by(Reservation.created_at.desc()).all()
+    return jsonify({
+        'reservations': [{
+            'id': reservation.id,
+            'book_id': reservation.book_id,
+            'title': Book.query.get(reservation.book_id).title,
+            'status': reservation.status,
+            'created_at': reservation.created_at.isoformat()
+        } for reservation in reservations]
+    }), 200
+
+
+@borrow_bp.route('/reserve/<int:reservation_id>', methods=['DELETE'])
+@token_required
+def cancel_reservation(current_user, reservation_id):
+    reservation = Reservation.query.get_or_404(reservation_id)
+    if reservation.user_id != current_user.id:
+        return jsonify({'error': {'message': 'Unauthorized to cancel this reservation'}}), 403
+    if reservation.status != 'waiting':
+        return jsonify({'error': {'message': 'Only waiting reservations can be cancelled'}}), 400
+
+    db.session.delete(reservation)
+    db.session.commit()
+    return jsonify({'message': 'Reservation cancelled successfully', 'reservation_id': reservation_id}), 200

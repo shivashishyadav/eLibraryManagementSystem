@@ -107,7 +107,7 @@ Expected response:
 
 | **Method** | **Endpoint** | **Auth** | **Description** |
 | ---------- | ------------ | -------- | --------------- |
-| `POST` | `/api/v1/auth/register` | None | Register new user (`member`, `librarian`) |
+| `POST` | `/api/v1/auth/register` | None | Register a new member |
 | `POST` | `/api/v1/auth/login` | None | Login to get Bearer JWT token |
 | `GET` | `/api/v1/auth/me` | JWT | Get active user profile |
 
@@ -119,6 +119,9 @@ Expected response:
 | `GET` | `/api/v1/books` | None | Search & paginate books (`?search=`, `?page=`) |
 | `GET` | `/api/v1/books/<id>` | None | Get detailed book view + ratings |
 | `POST` | `/api/v1/books` | Librarian | Add a new book to inventory |
+| `PUT` | `/api/v1/books/<id>` | Librarian | Update one or more book fields |
+| `DELETE` | `/api/v1/books/<id>` | Librarian | Delete a book with no loan/reservation history |
+| `GET` | `/api/v1/books/<id>/reviews` | None | List book reviews |
 | `POST` | `/api/v1/books/<id>/reviews` | Member | Leave a rating (1-5) and review |
 
 
@@ -129,6 +132,10 @@ Expected response:
 | `POST` | `/api/v1/borrow/issue` | Member | Borrow a book |
 | `POST` | `/api/v1/borrow/return/<id>` | Member | Return book (calculates fines) |
 | `POST` | `/api/v1/borrow/reserve` | Member | Join waitlist queue for out-of-stock book |
+| `GET` | `/api/v1/borrow/my-borrows` | JWT | View the current user's loan history |
+| `GET` | `/api/v1/borrow/reservations` | JWT | View the current user's reservations |
+| `DELETE` | `/api/v1/borrow/reserve/<id>` | JWT | Cancel a waiting reservation |
+| `GET` | `/api/v1/borrow/loans` | Librarian | View loans (`?status=active|overdue|returned|all`) |
 
 
 ### AI Summary Engine

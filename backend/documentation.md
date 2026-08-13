@@ -142,7 +142,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 | Method | Endpoint                | Auth | Description           |
 | ------ | ----------------------- | ---- | --------------------- |
-| POST   | `/api/v1/auth/register` | None | Register a user       |
+| POST   | `/api/v1/auth/register` | None | Register a member     |
 | POST   | `/api/v1/auth/login`    | None | Login and receive JWT |
 | GET    | `/api/v1/auth/me`       | JWT  | Get current user      |
 
@@ -153,6 +153,9 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | GET    | `/api/v1/books`              | None            | List, search and paginate books |
 | GET    | `/api/v1/books/<id>`         | None            | Get book details                |
 | POST   | `/api/v1/books`              | Librarian/Admin | Add a book                      |
+| PUT    | `/api/v1/books/<id>`         | Librarian/Admin | Update one or more book fields  |
+| DELETE | `/api/v1/books/<id>`         | Librarian/Admin | Delete a book without loan/reservation history |
+| GET    | `/api/v1/books/<id>/reviews` | None            | List book reviews               |
 | POST   | `/api/v1/books/<id>/reviews` | JWT             | Add/update a review             |
 
 ## Borrowing & Reservations
@@ -162,6 +165,10 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | POST   | `/api/v1/borrow/issue`       | JWT  | Borrow a book          |
 | POST   | `/api/v1/borrow/return/<id>` | JWT  | Return a borrowed book |
 | POST   | `/api/v1/borrow/reserve`     | JWT  | Join waitlist          |
+| GET    | `/api/v1/borrow/my-borrows`  | JWT  | View current user's loans |
+| GET    | `/api/v1/borrow/reservations` | JWT | View current user's reservations |
+| DELETE | `/api/v1/borrow/reserve/<id>` | JWT | Cancel a waiting reservation |
+| GET    | `/api/v1/borrow/loans`       | Librarian/Admin | View loans by status |
 
 ## AI Summary
 
@@ -263,43 +270,9 @@ Content-Type: application/json
 
 ---
 
-# TEST 3 — Register Librarian
+# TEST 3 — Librarian Provisioning
 
-### Endpoint
-
-```http
-POST /api/v1/auth/register
-```
-
-### Body
-
-```json
-{
-    "username": "librarian1",
-    "email": "librarian@example.com",
-    "password": "password123",
-    "role": "librarian"
-}
-```
-
-### Expected Response
-
-```json
-{
-    "message": "User registered successfully",
-    "user": {
-        "id": 2,
-        "username": "librarian1",
-        "role": "librarian"
-    }
-}
-```
-
-### Expected Status
-
-```text
-201 Created
-```
+Public registration creates only `member` accounts. Create librarian accounts through a controlled administrative or database provisioning process. Requests that include `"role": "librarian"` at the public registration endpoint return `403 Forbidden`.
 
 ---
 
