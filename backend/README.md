@@ -29,8 +29,6 @@ backend/
 │   ├── config.py                   ← configuration
 │   ├── utils.py                    ← JWT token decorator
 │   └── __init__.py                 ← Blueprint registration
-├── test/
-│   ├── test_library.py             ← General tests
 │
 ├── .env                            ← API credentials
 ├── run.py                          ← Application entry point
