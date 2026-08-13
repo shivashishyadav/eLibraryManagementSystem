@@ -31,7 +31,13 @@ def get_ai_usage(current_user):
 def summarize_book(current_user, book_id):
     book = Book.query.get_or_404(book_id)
     data = request.get_json() or {}
-    style = data.get('style', 'concise').lower() # options: concise, detailed, academic, casual
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
+
+    style = data.get('style', 'concise')
+    if not isinstance(style, str):
+        return jsonify({'error': {'message': 'Invalid style. Pick: concise, detailed, academic, casual'}}), 400
+    style = style.lower() # options: concise, detailed, academic, casual
 
     if style not in ['concise', 'detailed', 'academic', 'casual']:
         return jsonify({'error': {'message': 'Invalid style. Pick: concise, detailed, academic, casual'}}), 400

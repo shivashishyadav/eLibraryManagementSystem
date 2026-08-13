@@ -12,6 +12,8 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     if not data.get('username') or not data.get('email') or not data.get('password'):
         return jsonify({'error': {'message': 'Missing required fields: username, email, password'}}), 400
 

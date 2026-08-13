@@ -24,8 +24,14 @@ def list_books():
     author = request.args.get('author')
     category = request.args.get('category')
     search = request.args.get('search')
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 10))
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+    except ValueError:
+        return jsonify({'error': {'message': 'page and per_page must be integers'}}), 400
+
+    if page < 1 or per_page < 1 or per_page > 100:
+        return jsonify({'error': {'message': 'page must be at least 1 and per_page must be between 1 and 100'}}), 400
 
     query = Book.query
 
@@ -84,7 +90,7 @@ def create_book(current_user):
     if not isinstance(data, dict):
         return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     required = ['title', 'author', 'isbn', 'category']
-    if not all(k in data for k in required):
+    if not all(isinstance(data.get(k), str) and data[k].strip() for k in required):
         return jsonify({'error': {'message': f'Missing required fields: {required}'}}), 400
 
     if Book.query.filter_by(isbn=data['isbn']).first():
@@ -200,6 +206,8 @@ def list_reviews(book_id):
 def add_review(current_user, book_id):
     Book.query.get_or_404(book_id)
     data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     rating = data.get('rating')
 
     try:

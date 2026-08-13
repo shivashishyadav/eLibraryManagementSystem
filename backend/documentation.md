@@ -156,14 +156,14 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | PUT    | `/api/v1/books/<id>`         | Librarian/Admin | Update one or more book fields  |
 | DELETE | `/api/v1/books/<id>`         | Librarian/Admin | Delete a book without loan/reservation history |
 | GET    | `/api/v1/books/<id>/reviews` | None            | List book reviews               |
-| POST   | `/api/v1/books/<id>/reviews` | JWT             | Add/update a review             |
+| POST   | `/api/v1/books/<id>/reviews` | JWT             | Create/update the caller's review |
 
 ## Borrowing & Reservations
 
 | Method | Endpoint                     | Auth | Description            |
 | ------ | ---------------------------- | ---- | ---------------------- |
 | POST   | `/api/v1/borrow/issue`       | JWT  | Borrow a book          |
-| POST   | `/api/v1/borrow/return/<id>` | JWT  | Return a borrowed book |
+| POST   | `/api/v1/borrow/return/<id>` | JWT  | Return own loan; librarian/admin may return any loan |
 | POST   | `/api/v1/borrow/reserve`     | JWT  | Join waitlist          |
 | GET    | `/api/v1/borrow/my-borrows`  | JWT  | View current user's loans |
 | GET    | `/api/v1/borrow/reservations` | JWT | View current user's reservations |
@@ -1187,6 +1187,7 @@ The second request should be served from the database cache rather than making a
 
 # Test 27 — Update Book Title
 
+<!-- Legacy draft retained for source history; the corrected endpoint tests are below.
 ```Endpoint
 PUT /api/v1/books/<book_id>
 ```
@@ -1252,6 +1253,114 @@ Expected Status
 
 
 ---
+
+-->
+
+# TEST 27 â€” Update a Book
+
+Only a librarian or admin can update a book. Send only the fields that need to change.
+
+```http
+PUT /api/v1/books/1
+Authorization: Bearer LIBRARIAN_JWT_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "title": "The Alchemist - Updated Edition",
+    "description": "An inspiring story about following dreams and discovering one's purpose."
+}
+```
+
+Expected response:
+
+```json
+{
+    "message": "Book updated successfully",
+    "book_id": 1
+}
+```
+
+`total_copies` must be a positive integer and cannot be lower than the number of copies currently borrowed. Updating title, author, category, description, or excerpt removes cached AI summaries for that book.
+
+---
+
+# TEST 28 â€” Delete a Book
+
+Only a librarian or admin can delete a book. Deletion is allowed only when the book has no borrowing or reservation records.
+
+```http
+DELETE /api/v1/books/1
+Authorization: Bearer LIBRARIAN_JWT_TOKEN
+```
+
+Expected response:
+
+```json
+{
+    "message": "Book deleted successfully",
+    "book_id": 1
+}
+```
+
+---
+
+# TEST 29 â€” View Reviews
+
+```http
+GET /api/v1/books/1/reviews
+```
+
+Expected response structure:
+
+```json
+{
+    "reviews": [
+        {
+            "id": 1,
+            "rating": 5,
+            "comment": "Excellent book. Very inspiring.",
+            "created_at": "2026-08-14T00:00:00"
+        }
+    ],
+    "total": 1
+}
+```
+
+---
+
+# TEST 30 â€” View and Cancel Reservations
+
+```http
+GET /api/v1/borrow/reservations
+Authorization: Bearer ALICE_JWT_TOKEN
+```
+
+To cancel a waiting reservation:
+
+```http
+DELETE /api/v1/borrow/reserve/1
+Authorization: Bearer ALICE_JWT_TOKEN
+```
+
+---
+
+# TEST 31 â€” View Loans
+
+The authenticated user can view their own loan history:
+
+```http
+GET /api/v1/borrow/my-borrows
+Authorization: Bearer ALICE_JWT_TOKEN
+```
+
+A librarian or admin can view all loans by status:
+
+```http
+GET /api/v1/borrow/loans?status=overdue
+Authorization: Bearer LIBRARIAN_JWT_TOKEN
+```
 
 # J. Additional AI Style Tests
 
@@ -1399,7 +1508,7 @@ The recommended assessment demonstration flow is:
         ↓
 2. Register member
         ↓
-3. Register librarian
+3. Provision a librarian account
         ↓
 4. Login member
         ↓
@@ -1446,6 +1555,16 @@ The recommended assessment demonstration flow is:
 25. Test invalid AI style
         ↓
 26. Test invalid / missing JWT
+        ↓
+27. Update a book
+       ↓
+28. Delete an unused book
+       ↓
+29. View book reviews
+       ↓
+30. View and cancel a reservation
+       ↓
+31. View member and librarian loan lists
 ```
 
 ---

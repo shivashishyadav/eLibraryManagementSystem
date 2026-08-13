@@ -57,6 +57,8 @@ def list_loans(current_user):
 @token_required
 def borrow_book(current_user):
     data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     book_id = data.get('book_id')
     if not book_id:
         return jsonify({'error': {'message': 'book_id is required'}}), 400
@@ -149,6 +151,8 @@ def return_book(current_user, borrow_id):
 @token_required
 def reserve_book(current_user):
     data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({'error': {'message': 'Request body must be a JSON object'}}), 400
     book_id = data.get('book_id')
     book = Book.query.get_or_404(book_id)
 
