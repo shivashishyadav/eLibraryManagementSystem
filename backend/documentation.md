@@ -1182,6 +1182,74 @@ The important difference is:
 ```
 
 The second request should be served from the database cache rather than making another AI request.
+---
+
+
+# Test 27 — Update Book Title
+
+```Endpoint
+PUT /api/v1/books/<book_id>
+```
+
+```URL
+http://127.0.0.1:5000/api/v1/books/1
+```
+```
+Authentication
+Authorization: Bearer LIBRARIAN_JWT_TOKEN
+```
+```
+Headers
+Content-Type: application/json
+Authorization: Bearer LIBRARIAN_JWT_TOKEN
+```
+```
+Body
+{
+    "title": "The Alchemist - Updated Edition"
+}
+Expected Response
+{
+    "message": "Book updated successfully",
+    "book_id": 1
+}
+```
+```
+Expected Status
+200 OK
+```
+```
+Verify the change:
+
+GET /api/v1/books/1
+
+The response should contain:
+
+{
+    "id": 1,
+    "title": "The Alchemist - Updated Edition"
+}
+```
+### Test 27.2 — Update Multiple Fields
+```Body
+{
+    "title": "The Alchemist",
+    "category": "Literary Fiction",
+    "description": "An inspiring story about following dreams and discovering one's purpose.",
+    "content_excerpt": "Santiago begins a journey to discover a hidden treasure and ultimately discovers the importance of his own journey."
+}
+```
+
+```
+Expected Response
+{
+    "message": "Book updated successfully",
+    "book_id": 1
+}
+```
+Expected Status
+200 OK
+
 
 ---
 
