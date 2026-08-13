@@ -1,0 +1,12 @@
+{{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJyb2xlIjoibWVtYmVyIiwiZXhwIjoxNzg2NzI2ODU5fQ.wTjhvC4CeppmiEpK-3K-p9zq8Ihu_lYsxijUVmX_8yA",
+  "expires_in": 86400,
+  "role": "member"
+}
+
+
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJyb2xlIjoibGlicmFyaWFuIiwiZXhwIjoxNzg2NzI3MzcxfQ.kabXXRYH15z6GhsM4hbuGJv5xHOwhNcciTDZcgBxC6Q",
+  "expires_in": 86400,
+  "role": "librarian"
+}}
