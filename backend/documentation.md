@@ -37,7 +37,10 @@ backend/
 │       ├── book_routes.py
 │       ├── borrow_routes.py
 │       └── ai_routes.py
-│
+├── tests/
+│   ├──
+│      └── run_api_flow.py 
+│      └── test_library_api.py
 ├── .env
 ├── .gitignore
 ├── requirements.txt
