@@ -61,6 +61,94 @@ backend/
 
 ---
 
+
+## According to problem Statements: 
+
+### 1. [Identify edge cases, constraints, and real-world considerations](https://github.com/shivashishyadav/eLibraryManagementSystem/blob/main/backend/documentation.md#t-important-edge-cases)
+
+---
+
+### 2. Core Features
+
+Beyond the basic requirements of book management and AI summarization, the system includes:
+
+1. Role-based access control.
+2. Inventory copy tracking.
+3. Borrowing limits.
+4. Automatic due dates.
+5. Overdue fines.
+6. Reservation queues.
+7. Automatic reservation fulfillment.
+8. Reservation cancellation.
+9. Loan history.
+10. Librarian/admin loan monitoring.
+11. Book reviews and rating aggregation.
+12. Public review access.
+13. Pagination and multi-field searching.
+14. Inventory consistency validation.
+15. AI summary caching.
+16. AI cache invalidation after book updates.
+17. Automated API testing.
+18. Structured API error handling.
+
+---
+
+### 3. Maintainability
+
+The application is designed with modularity in mind:
+
+1. Flask Blueprints separate API responsibilities.
+2. SQLAlchemy separates database models from route logic.
+3. Authentication is implemented through reusable decorators.
+4. Role authorization is implemented through a reusable roles_required() decorator.
+5. Configuration is managed through environment variables.
+6. AI integration is isolated in its own route module.
+7. AI responses are cached independently from the core book workflow.
+8. Automated API tests are maintained separately from application code.
+
+---
+
+### 4. AI-Powered Book Summary
+
+The AI feature is implemented as a dedicated summary engine using the **UserFacet AI API with GPT-4o-mini**.
+
+The workflow is:
+
+1. The authenticated user requests a summary for a book.
+2. The system validates the requested summary style.
+3. A SHA-256 content hash is generated using the book information and requested style.
+4. The system checks whether a matching summary already exists in the database cache.
+5. If a cached summary exists, it is returned without making another AI request.
+6. If no cached summary exists, the backend builds a structured prompt using the book's title, author, category, description, and content excerpt.
+7. The request is sent securely from the backend to the UserFacet AI API.
+8. The generated structured summary is validated.
+9. The summary is stored in `BookSummaryCache`.
+10. The generated summary is returned to the user.
+
+Supported summary styles:
+
+- `concise`
+- `detailed`
+- `academic`
+- `casual`
+
+
+---
+
+### 5. Entities
+
+The system is designed around the following core entities:
+
+- **User** — Stores members, librarians, and administrators with role-based permissions.
+- **Book** — Stores book metadata, inventory, descriptions, and content excerpts.
+- **BorrowRecord** — Tracks book issues, due dates, returns, and fines.
+- **Reservation** — Maintains the waiting queue for unavailable books.
+- **Review** — Stores user ratings and reviews for books.
+- **BookSummaryCache** — Stores previously generated AI summaries to avoid unnecessary AI API calls.
+
+
+---
+
 ## Installation & Setup
 
 ### 1. Prerequisites
@@ -211,4 +299,4 @@ The runner prints each API request and its result in the terminal. It uses a tem
 
 
 ## Complete Documentation
-### [documentation.md](https://github.com/shivashishyadav/eLibraryManagementSystem/blob/main/backend/documentation.md)
+### [Want to See full Documentation](https://github.com/shivashishyadav/eLibraryManagementSystem/blob/main/backend/documentation.md)

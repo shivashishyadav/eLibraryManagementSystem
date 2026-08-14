@@ -1,4 +1,4 @@
-# Application entry point
+"""Application entry point for local development."""
 
 from app import create_app
 

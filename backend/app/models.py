@@ -1,4 +1,4 @@
-# SQLAlchemy database schemas
+"""Database models for users, books, loans, and AI summaries."""
 
 import hashlib
 from datetime import datetime, timedelta
@@ -12,7 +12,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='member') # member, librarian
+    role = db.Column(db.String(20), default='member')  # member or librarian
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     borrows = db.relationship('BorrowRecord', backref='user', lazy=True)
@@ -53,7 +53,7 @@ class BorrowRecord(db.Model):
     due_date = db.Column(db.DateTime, nullable=False)
     return_date = db.Column(db.DateTime, nullable=True)
     fine_amount = db.Column(db.Float, default=0.0)
-    status = db.Column(db.String(20), default='active') # active, returned, overdue
+    status = db.Column(db.String(20), default='active')  # active, returned, or overdue
 
     book = db.relationship('Book')
 
@@ -73,7 +73,7 @@ class BookSummaryCache(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
-    style = db.Column(db.String(30), nullable=False) # concise, detailed, academic, casual
+    style = db.Column(db.String(30), nullable=False)  # concise, detailed, academic, or casual
     content_hash = db.Column(db.String(64), nullable=False)
     summary = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -85,6 +85,6 @@ class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False) # 1 to 5
+    rating = db.Column(db.Integer, nullable=False)  # Rating from 1 to 5
     comment = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

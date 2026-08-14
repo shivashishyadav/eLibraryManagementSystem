@@ -1,4 +1,4 @@
-# Borrow, Return, Reserve waitlist
+"""Routes for borrowing, returns, loans, and reservations."""
 
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, current_app
@@ -10,6 +10,7 @@ borrow_bp = Blueprint('borrow', __name__, url_prefix='/api/v1/borrow')
 
 
 def _loan_response(record):
+    """Format a loan record and calculate its current overdue status."""
     is_overdue = record.status == 'active' and record.due_date < datetime.utcnow()
     return {
         'id': record.id,
@@ -65,17 +66,15 @@ def borrow_book(current_user):
 
     book = Book.query.get_or_404(book_id)
 
-    # 1. Active borrow limit check
+    # A member can only keep the configured number of active loans.
     active_borrows = BorrowRecord.query.filter_by(user_id=current_user.id, status='active').count()
     if active_borrows >= current_app.config['MAX_BORROW_LIMIT']:
         return jsonify({'error': {'message': f'Borrow limit reached ({current_app.config["MAX_BORROW_LIMIT"]} books)'}}), 400
 
-    # 2. Check duplicate borrowing
     already_borrowed = BorrowRecord.query.filter_by(user_id=current_user.id, book_id=book_id, status='active').first()
     if already_borrowed:
         return jsonify({'error': {'message': 'You already have an active loan for this book'}}), 400
 
-    # 3. Check copy availability
     if book.available_copies <= 0:
         return jsonify({'error': {'message': 'No copies available. Consider reserving this book.'}}), 409
 
@@ -112,7 +111,7 @@ def return_book(current_user, borrow_id):
     record.return_date = datetime.utcnow()
     record.status = 'returned'
 
-    # Calculate Fine if overdue
+    # Add a fine only for complete overdue days.
     if record.return_date > record.due_date:
         overdue_days = (record.return_date - record.due_date).days
         if overdue_days > 0:
@@ -120,7 +119,7 @@ def return_book(current_user, borrow_id):
 
     book = Book.query.get(record.book_id)
 
-    # Check waitlist reservation queue
+    # Give the returned copy to the first waiting member.
     next_reservation = Reservation.query.filter_by(book_id=book.id, status='waiting')\
                                          .order_by(Reservation.created_at.asc()).first()
 

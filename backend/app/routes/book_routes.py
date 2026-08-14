@@ -1,4 +1,4 @@
-# Book CRUD, search, filter, reviews
+"""Routes for book management, search, and reviews."""
 
 from flask import Blueprint, request, jsonify
 from app import db
@@ -9,6 +9,7 @@ book_bp = Blueprint('books', __name__, url_prefix='/api/v1/books')
 
 
 def _parse_total_copies(value):
+    """Return a valid positive copy count or ``None``."""
     if isinstance(value, bool) or (isinstance(value, float) and not value.is_integer()):
         return None
     try:
@@ -159,7 +160,7 @@ def update_book(current_user, book_id):
         if field in data:
             setattr(book, field, data[field])
 
-    # Book details may affect generated summaries, so stale cache entries are removed.
+    # Remove summaries because this content may have changed.
     if any(field in data for field in ['title', 'author', 'category', 'description', 'content_excerpt']):
         BookSummaryCache.query.filter_by(book_id=book.id).delete(synchronize_session=False)
 

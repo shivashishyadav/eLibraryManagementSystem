@@ -1,4 +1,4 @@
-# Register, Login, User profile
+"""Routes for registration, login, and the current user profile."""
 
 import jwt
 from datetime import datetime, timedelta

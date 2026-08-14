@@ -1,4 +1,4 @@
-# Security decorators & helper functions
+"""Shared authentication and role-check helpers."""
 
 import jwt
 from functools import wraps
@@ -6,6 +6,7 @@ from flask import request, jsonify, current_app
 from app.models import User
 
 def token_required(f):
+    """Require a valid JWT and pass its user to the route."""
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
@@ -31,6 +32,7 @@ def token_required(f):
     return decorated
 
 def roles_required(*roles):
+    """Allow the route only for the listed user roles."""
     def decorator(f):
         @wraps(f)
         def decorated(current_user, *args, **kwargs):

@@ -1,3 +1,5 @@
+"""Create and configure the library API."""
+
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from app.config import Config
@@ -5,13 +7,14 @@ from app.config import Config
 db = SQLAlchemy()
 
 def create_app(config_class=Config):
+    """Build the Flask app and register its API routes."""
     app = Flask(__name__)
     
     app.config.from_object(config_class)
 
     db.init_app(app)
 
-    # Register Blueprints
+    # Keep each API area in its own route module.
     from app.routes.auth_routes import auth_bp
     from app.routes.book_routes import book_bp
     from app.routes.borrow_routes import borrow_bp
@@ -36,6 +39,7 @@ def create_app(config_class=Config):
         return jsonify({'status': 'ok'}), 200
 
     with app.app_context():
+        # Create database tables when running without migrations.
         db.create_all()
 
     return app

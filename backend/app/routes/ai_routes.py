@@ -1,4 +1,4 @@
-# GPT-4o-mini proxy + Caching engine
+"""Routes for AI summaries and cached summary results."""
 
 import hashlib
 import requests
@@ -10,6 +10,7 @@ from app.utils import token_required
 ai_bp = Blueprint('ai', __name__, url_prefix='/api/v1/ai')
 
 def _generate_content_hash(book, style):
+    """Create a cache key from the book content and summary style."""
     raw_str = f"{book.id}:{book.title}:{book.description}:{book.content_excerpt}:{style}"
     return hashlib.sha256(raw_str.encode('utf-8')).hexdigest()
 
@@ -37,12 +38,12 @@ def summarize_book(current_user, book_id):
     style = data.get('style', 'concise')
     if not isinstance(style, str):
         return jsonify({'error': {'message': 'Invalid style. Pick: concise, detailed, academic, casual'}}), 400
-    style = style.lower() # options: concise, detailed, academic, casual
+    style = style.lower()
 
     if style not in ['concise', 'detailed', 'academic', 'casual']:
         return jsonify({'error': {'message': 'Invalid style. Pick: concise, detailed, academic, casual'}}), 400
 
-    # 1. Compute Hash & Check DB Cache
+    # Reuse a summary when the book content has not changed.
     content_hash = _generate_content_hash(book, style)
     cached = BookSummaryCache.query.filter_by(book_id=book.id, style=style, content_hash=content_hash).first()
 
@@ -55,7 +56,6 @@ def summarize_book(current_user, book_id):
             'cached': True
         }), 200
 
-    # 2. Build Prompt
     prompt = f"""Write a {style} summary for the following book:
 Title: {book.title}
 Author: {book.author}
@@ -64,7 +64,7 @@ Description: {book.description or 'N/A'}
 Excerpt: {book.content_excerpt or 'N/A'}
 """
 
-    # 3. Request GPT-4o-mini via UserFacet API Proxy
+    # Request a new summary only when no matching cache entry exists.
     url = f"{current_app.config['AI_BASE_URL']}/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {current_app.config['AI_API_TOKEN']}",
@@ -88,7 +88,7 @@ Excerpt: {book.content_excerpt or 'N/A'}
         res_data = response.json()
         summary_text = res_data['choices'][0]['message']['content']
 
-        # 4. Store in Cache Table
+        # Save the result for later requests with the same content.
         new_cache = BookSummaryCache(
             book_id=book.id,
             style=style,

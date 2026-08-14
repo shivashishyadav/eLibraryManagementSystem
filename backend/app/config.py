@@ -1,10 +1,10 @@
-# Environment configuration
+"""Load environment settings and library rules."""
 
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
-# Automatically load key-values from .env file into environment variables
+# Load local environment values when available.
 load_dotenv()
 
 class Config:
@@ -12,11 +12,11 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///elibrary.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # AI Proxy Configuration
+    # Settings for the AI service proxy.
     AI_BASE_URL = os.getenv('AI_BASE_URL', 'https://your-api-key')
     AI_API_TOKEN = os.getenv('AI_API_TOKEN', 'xx-API-token')
     
-    # Library Business Rules
+    # Rules used while issuing and returning books.
     MAX_BORROW_LIMIT = 5
     DEFAULT_LOAN_DAYS = 14
     DAILY_FINE_RATE = 1.50
