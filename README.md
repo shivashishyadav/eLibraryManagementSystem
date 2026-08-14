@@ -1,10 +1,10 @@
-# 📚 E-Library Management System Backend
+# E-Library Management System Backend
 
 An enterprise-grade, modular RESTful backend API built with **Flask**, **SQLAlchemy**, **JWT Authentication**, and an integrated **GPT-4o-mini AI Summarization Proxy Engine**.
 
 ---
 
-## 🏛️ System Architecture & Key Features
+## System Architecture & Key Features
 
 * **Role-Based Access Control (RBAC):** Gated permissions supporting `member`, `librarian`, and provisioned `admin` access levels. Public registration creates member accounts only.
 * **Inventory & Review Management:** Full CRUD operations for library catalog, full-text search across titles/authors/descriptions, pagination, and user rating aggregations.
@@ -15,10 +15,31 @@ An enterprise-grade, modular RESTful backend API built with **Flask**, **SQLAlch
   * Supports 4 customized summary styles (`concise`, `detailed`, `academic`, `casual`).
   * **SHA-256 Hashing Cache Layer:** Caches generated summaries in SQLite to eliminate redundant AI calls and conserve your 100-request quota limit.
 
+```text
+                    E-LIBRARY SYSTEM
+                           |
+          +----------------+----------------+
+          |                |                |
+       Users             Books           AI Engine
+          |                |                |
+       JWT Auth       CRUD/Search       UserFacet API
+          |                |                |
+       Roles          Borrowing         GPT-4o-mini
+          |                |                |
+   Member/Librarian     Reviews        Summary Cache
+          |             Reservations        |
+          |                |                |
+          +----------------+----------------+
+                           |
+                      SQLAlchemy
+                           |
+                         SQLite
+```
+
 
 ---
 
-## 🗂️ Project Files Overview
+## Project Files Overview
 
 ```
 backend/
@@ -44,9 +65,22 @@ backend/
 
 ### 1. Prerequisites
 * Python 3.9+
-* `pip` and `venv`
+*  Git
+* `pip`
+* `venv`
 
-### 2. Environment Setup
+--- 
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/shivashishyadav/eLibraryManagementSystem.git
+cd eLibraryManagementSystem
+```
+
+---
+
+### 3. Environment Setup
 Navigate to the backend directory and set up a virtual environment:
 
 ```bash
@@ -54,10 +88,27 @@ cd backend
 python -m venv venv
 
 ```
+#### Activate it on Windows:
+```bash
+cd backend
+.\venv\Scripts\Activate.ps1   
+```
+#### For Git Bash:
+```bash
+cd backend
+source venv/Scripts/activate
+```
+---
+
+### 4. Install Dependencies
+```bash
+pip install -r requirements.txt 
+ ```
+
 
 ---
 
-### Configuration (.env)
+### 5. Configuration (.env)
 ```
 AI_API_TOKEN=YOUR_API_KEY
 SECRET_KEY=elibrary-super-secret-key-2026
@@ -157,3 +208,7 @@ The runner prints each API request and its result in the terminal. It uses a tem
 | ---------- | ------------ | -------- | --------------- |
 | `GET` | `/api/v1/ai/usage` | JWT | Check UserFacet API quota limits |
 | `POST` | `/api/v1/ai/summarize/<id>` | JWT | Generate AI summary (Cached) |
+
+
+## Complete Documentation
+### [documentation.md](https://github.com/shivashishyadav/eLibraryManagementSystem/blob/main/backend/documentation.md)
